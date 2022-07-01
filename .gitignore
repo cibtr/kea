@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+bin/
+*.o
+*.a
+*.so
+*.gch
