@@ -11,8 +11,6 @@ CFLAGS = -std=c17 -Wall -Werror -pedantic -Iinclude
 # Uncomment for debug
 CFLAGS += -O0 -ggdb
 
-LDFLAGS =
-
 BIN = bin
 
 SRC = $(wildcard src/*.c)
