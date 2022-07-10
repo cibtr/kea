@@ -1,0 +1,103 @@
+#ifndef LEXER_H
+#define LEXER_H
+
+#include <stdint.h>
+
+#include "symbol_table.h"
+
+typedef enum {
+	TOKEN_LEFT_PAREN,
+	TOKEN_RIGHT_PAREN,
+	TOKEN_LEFT_BRACKET,
+	TOKEN_RIGHT_BRACKET,
+	TOKEN_LEFT_BRACE,
+	TOKEN_RIGHT_BRACE,
+	TOKEN_COMMA,
+	TOKEN_PERIOD,
+	TOKEN_COLON,
+	TOKEN_SEMICOLON,
+	TOKEN_BANG,
+	TOKEN_EQUAL,
+	TOKEN_NOT_EQUAL,
+	TOKEN_LESS_THAN,
+	TOKEN_GREATER_THAN,
+	TOKEN_LESS_EQUAL_THAN,
+	TOKEN_GREATER_EQUAL_THAN,
+	TOKEN_AND_AND,
+	TOKEN_AND_EQUALS,
+	TOKEN_OR_OR,
+	TOKEN_OR_EQUALS,
+	TOKEN_ASSIGN,
+	TOKEN_PLUS,
+	TOKEN_MINUS,
+	TOKEN_PLUS_PLUS,
+	TOKEN_MINUS_MINUS,
+	TOKEN_ASTERISK,
+	TOKEN_DIVIDE,
+	TOKEN_MODULO,
+	TOKEN_DIVIDE_EQUALS,
+	TOKEN_TIMES_EQUALS,
+	TOKEN_PLUS_EQUALS,
+	TOKEN_MINUS_EQUALS,
+	TOKEN_MODULO_EQUALS,
+	TOKEN_AND,
+	TOKEN_OR,
+	TOKEN_XOR,
+	TOKEN_NOT,
+	TOKEN_BITSHIFT_LEFT,
+	TOKEN_BITSHIFT_RIGHT,
+	TOKEN_BITSHIFT_LEFT_EQUALS,
+	TOKEN_BITSHIFT_RIGHT_EQUALS,
+	TOKEN_INCREMENT,
+	TOKEN_DECREMENT,
+	TOKEN_ARROW,
+	TOKEN_VOID,
+	TOKEN_BOOL,
+	TOKEN_TRUE,
+	TOKEN_FALSE,
+	TOKEN_VAR,
+	TOKEN_I8,
+	TOKEN_I16,
+	TOKEN_I32,
+	TOKEN_I64,
+	TOKEN_UI8,
+	TOKEN_UI16,
+	TOKEN_UI32,
+	TOKEN_UI64,
+	TOKEN_IF,
+	TOKEN_ELSE,
+	TOKEN_SWITCH,
+	TOKEN_CASE,
+	TOKEN_DEFAULT,
+	TOKEN_WHILE,
+	TOKEN_FOR,
+	TOKEN_CONTINUE,
+	TOKEN_BREAK,
+	TOKEN_RETURN,
+	TOKEN_INT_LITERAL,
+	TOKEN_CHARACTER_LITERAL,
+	TOKEN_STRING_LITERAL,
+	TOKEN_IDENTIFIER,
+	TOKEN_EOF
+} TokenType;
+
+
+typedef struct lexer Lexer;
+
+typedef struct {
+	TokenType type;
+	Symbol *value; // If the token is an identifier, it will point to the symbol table entry for that identifier
+	uint64_t line;
+} Token;
+
+
+Lexer *lexer_create(const char *src, const char *file_name, SymbolTable *table);
+void lexer_free(Lexer *lexer);
+
+// Returns the next token from
+Token *lexer_next_token(Lexer *lexer);
+
+// Returns the name of the token enum value passed in
+const char *lexer_str_token(TokenType token);
+
+#endif // LEXER_H
