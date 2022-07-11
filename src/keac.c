@@ -7,7 +7,7 @@
 #include "lexer.h"
 #include "symbol_table.h"
 
-void keac_run(const char *file_name)
+char *keac_compile(const char *file_name)
 {
 	SymbolTable *table = st_create(8);
 
@@ -16,10 +16,16 @@ void keac_run(const char *file_name)
 	Lexer *lexer = lexer_create(src, file_name, table);
 
 	while (lexer_next_token(lexer)->type != TOKEN_EOF);
+	putchar('\n');
 	free(src);
 	lexer_free(lexer);
 
 	st_free(table);
+
+	// After code generation
+	// char *assembly;
+	// return assembly;
+	return NULL;
 }
 
 void keac_error(const char *file, uint64_t line, uint64_t column, const char *message, ...)

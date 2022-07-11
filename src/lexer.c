@@ -31,16 +31,12 @@ typedef struct lexer {
 	size_t src_length;
 	uint64_t index;
 
-	uint64_t line;
-	uint64_t column;
+	uint64_t line, column;
 
 	char lexeme[IDENTIFIER_LENGTH + 1]; // + 1 for the null character
+	regex_t valid_int_reg, invalid_int_reg, identifier_reg;
 
 	Token *token;
-
-	regex_t valid_int_reg;
-	regex_t invalid_int_reg;
-	regex_t identifier_reg;
 } Lexer;
 
 
@@ -116,14 +112,12 @@ void next_word(Lexer *this)
 		++this->column;
 
 		if (lexeme_index == IDENTIFIER_LENGTH - 1) {
-			keac_error(this->file, this->line, this->column, "identifier length exceeds length limit of %d\n", IDENTIFIER_LENGTH);
+			keac_error(this->file, this->line, this->column, "identifier length exceeds limit of %d\n", IDENTIFIER_LENGTH);
 			exit(EXIT_FAILURE);
 		}
 
-		if (current == 0) {
-			++this->index;
+		if (current == 0)
 			return;
-		}
 
 		if (is_identifier_part(current)) {
 			this->lexeme[lexeme_index] = current;
@@ -229,21 +223,21 @@ void identify_token(Lexer *this)
 	else if (this->lexeme[0] == '{')                add_token(this, TOKEN_LEFT_BRACE, this->line);
 	else if (this->lexeme[0] == '}')                add_token(this, TOKEN_RIGHT_BRACE, this->line);
 	else if (this->lexeme[0] == ',')                add_token(this, TOKEN_COMMA, this->line);
-	else if (this->lexeme[0] == ':')                add_token(this, TOKEN_COLON, this->line);
 	else if (this->lexeme[0] == ';')                add_token(this, TOKEN_SEMICOLON, this->line);
-	else if (this->lexeme[0] == '!')                add_token(this, TOKEN_BANG, this->line);
-	else if (this->lexeme[0] == '=')                add_token(this, TOKEN_ASSIGN, this->line);
-	else if (this->lexeme[0] == '+')                add_token(this, TOKEN_PLUS, this->line);
-	else if (this->lexeme[0] == '-')                add_token(this, TOKEN_MINUS, this->line);
-	else if (this->lexeme[0] == '*')                add_token(this, TOKEN_ASTERISK, this->line);
-	else if (this->lexeme[0] == '/')                add_token(this, TOKEN_DIVIDE, this->line);
-	else if (this->lexeme[0] == '%')                add_token(this, TOKEN_MODULO, this->line);
-	else if (this->lexeme[0] == '<')                add_token(this, TOKEN_LESS_THAN, this->line);
-	else if (this->lexeme[0] == '>')                add_token(this, TOKEN_GREATER_THAN, this->line);
-	else if (this->lexeme[0] == '&')                add_token(this, TOKEN_AND, this->line);
-	else if (this->lexeme[0] == '|')                add_token(this, TOKEN_OR, this->line);
-	else if (this->lexeme[0] == '^')                add_token(this, TOKEN_XOR, this->line);
 	else if (this->lexeme[0] == '~')                add_token(this, TOKEN_NOT, this->line);
+	else if (strcmp(this->lexeme, "=") == 0)        add_token(this, TOKEN_ASSIGN, this->line);
+	else if (strcmp(this->lexeme, "+") == 0)        add_token(this, TOKEN_PLUS, this->line);
+	else if (strcmp(this->lexeme, "-") == 0)        add_token(this, TOKEN_MINUS, this->line);
+	else if (strcmp(this->lexeme, "*") == 0)        add_token(this, TOKEN_ASTERISK, this->line);
+	else if (strcmp(this->lexeme, "/") == 0)        add_token(this, TOKEN_DIVIDE, this->line);
+	else if (strcmp(this->lexeme, "%") == 0)        add_token(this, TOKEN_MODULO, this->line);
+	else if (strcmp(this->lexeme, "<") == 0)        add_token(this, TOKEN_LESS_THAN, this->line);
+	else if (strcmp(this->lexeme, ">") == 0)        add_token(this, TOKEN_GREATER_THAN, this->line);
+	else if (strcmp(this->lexeme, "!") == 0)        add_token(this, TOKEN_GREATER_THAN, this->line);
+	else if (strcmp(this->lexeme, "&") == 0)        add_token(this, TOKEN_AND, this->line);
+	else if (strcmp(this->lexeme, "|") == 0)        add_token(this, TOKEN_OR, this->line);
+	else if (strcmp(this->lexeme, "^") == 0)        add_token(this, TOKEN_XOR, this->line);
+	else if (strcmp(this->lexeme, ":") == 0)        add_token(this, TOKEN_COLON, this->line);
 	else if (strcmp(this->lexeme, "==") == 0)       add_token(this, TOKEN_EQUAL, this->line);
 	else if (strcmp(this->lexeme, "!=") == 0)       add_token(this, TOKEN_NOT_EQUAL, this->line);
 	else if (strcmp(this->lexeme, "<=") == 0)       add_token(this, TOKEN_LESS_EQUAL_THAN, this->line);
@@ -252,8 +246,8 @@ void identify_token(Lexer *this)
 	else if (strcmp(this->lexeme, "&=") == 0)       add_token(this, TOKEN_AND_EQUALS, this->line);
 	else if (strcmp(this->lexeme, "||") == 0)       add_token(this, TOKEN_OR_OR, this->line);
 	else if (strcmp(this->lexeme, "|=") == 0)       add_token(this, TOKEN_OR_EQUALS, this->line);
-	else if (strcmp(this->lexeme, "++") == 0)       add_token(this, TOKEN_PLUS_PLUS, this->line);
-	else if (strcmp(this->lexeme, "--") == 0)       add_token(this, TOKEN_MINUS_MINUS, this->line);
+	else if (strcmp(this->lexeme, "++") == 0)       add_token(this, TOKEN_INCREMENT, this->line);
+	else if (strcmp(this->lexeme, "--") == 0)       add_token(this, TOKEN_DECREMENT, this->line);
 	else if (strcmp(this->lexeme, "/=") == 0)       add_token(this, TOKEN_DIVIDE_EQUALS, this->line);
 	else if (strcmp(this->lexeme, "*=") == 0)       add_token(this, TOKEN_TIMES_EQUALS, this->line);
 	else if (strcmp(this->lexeme, "+=") == 0)       add_token(this, TOKEN_PLUS_EQUALS, this->line);
@@ -287,18 +281,17 @@ void identify_token(Lexer *this)
 	else if (strcmp(this->lexeme, "return") == 0)   add_token(this, TOKEN_RETURN, this->line);
 	else if (strcmp(this->lexeme, "default") == 0)  add_token(this, TOKEN_DEFAULT, this->line);
 	else if (strcmp(this->lexeme, "continue") == 0) add_token(this, TOKEN_CONTINUE, this->line);
-
+	else if (this->lexeme[0] == 0)                  add_token(this, TOKEN_EOF, 0);
 	else if (regex_match(this->lexeme, &this->valid_int_reg))
 		add_token(this, TOKEN_INT_LITERAL, this->line);
 	else if (regex_match(this->lexeme, &this->invalid_int_reg)) {
-		keac_error(this->file, this->line, this->column, "unknown suffix in integer literal %s\n", this->lexeme);
+		keac_error(this->file, this->line, this->column, "invalid integer literal: %s\n", this->lexeme);
 		exit(EXIT_FAILURE);
 	}
 	else if (regex_match(this->lexeme, &this->identifier_reg))
 		add_token(this, TOKEN_IDENTIFIER, this->line);
-	else if (this->lexeme[0] == 0) add_token(this, TOKEN_EOF, 0);
 	else {
-		keac_error(this->file, this->line, this->column, "unknown lexeme %s\n", this->lexeme);
+		keac_error(this->file, this->line, this->column, "unknown lexeme: %s\n", this->lexeme);
 		
 		exit(EXIT_FAILURE);
 	}
@@ -360,8 +353,8 @@ const char *lexer_str_token(TokenType token)
 		case TOKEN_ASSIGN:                return "ASSIGN";
 		case TOKEN_PLUS:                  return "PLUS";
 		case TOKEN_MINUS:                 return "MINUS";
-		case TOKEN_PLUS_PLUS:             return "PLUS_PLUS";
-		case TOKEN_MINUS_MINUS:           return "MINUS_MINUS";
+		case TOKEN_INCREMENT:             return "INCREMENT";
+		case TOKEN_DECREMENT:             return "DECREMENT";
 		case TOKEN_ASTERISK:              return "ASTERISK";
 		case TOKEN_DIVIDE:                return "DIVIDE";
 		case TOKEN_MODULO:                return "MODULO";
@@ -378,8 +371,6 @@ const char *lexer_str_token(TokenType token)
 		case TOKEN_BITSHIFT_RIGHT:        return "BITSHIFT_RIGHT";
 		case TOKEN_BITSHIFT_LEFT_EQUALS:  return "BITSHIFT_LEFT_EQUALS";
 		case TOKEN_BITSHIFT_RIGHT_EQUALS: return "BITSHIFT_RIGHT_EQUALS";
-		case TOKEN_INCREMENT:             return "INCREMENT";
-		case TOKEN_DECREMENT:             return "DECREMENT";
 		case TOKEN_ARROW:                 return "ARROW";
 		case TOKEN_VOID:                  return "VOID";
 		case TOKEN_BOOL:                  return "BOOL";

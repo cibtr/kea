@@ -30,8 +30,8 @@ typedef enum {
 	TOKEN_ASSIGN,
 	TOKEN_PLUS,
 	TOKEN_MINUS,
-	TOKEN_PLUS_PLUS,
-	TOKEN_MINUS_MINUS,
+	TOKEN_INCREMENT,
+	TOKEN_DECREMENT,
 	TOKEN_ASTERISK,
 	TOKEN_DIVIDE,
 	TOKEN_MODULO,
@@ -48,8 +48,6 @@ typedef enum {
 	TOKEN_BITSHIFT_RIGHT,
 	TOKEN_BITSHIFT_LEFT_EQUALS,
 	TOKEN_BITSHIFT_RIGHT_EQUALS,
-	TOKEN_INCREMENT,
-	TOKEN_DECREMENT,
 	TOKEN_ARROW,
 	TOKEN_VOID,
 	TOKEN_BOOL,
@@ -87,7 +85,7 @@ typedef struct lexer Lexer;
 typedef struct {
 	TokenType type;
 	Symbol *value; // If the token is an identifier, it will point to the symbol table entry for that identifier
-	uint64_t line;
+	uint64_t line, column;
 } Token;
 
 
