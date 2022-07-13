@@ -31,7 +31,7 @@ all: $(EXE)
 $(EXE): $(OBJ)
 	@ mkdir -p $(BIN)
 	@ echo -e "$(GREEN)LINKING$(NC) $(EXE)"
-	@ $(LD) $(LDFLAGS) $^ -o $(BIN)/$@
+	@ $(LD) $^ -o $(BIN)/$@ $(LDFLAGS)
 
 %.o: %.c
 	@ echo -e "$(GREEN)COMPILING$(NC) $<"
