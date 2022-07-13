@@ -6,10 +6,13 @@ CC = gcc
 LD = gcc
 
 CFLAGS = -std=c17 -Wall -Werror -pedantic -Iinclude
+CFLAGS += -Ideps/pcre2/src
 # Uncomment for release
 # CFLAGS += -O3
 # Uncomment for debug
 CFLAGS += -O0 -ggdb
+
+LDFLAGS = deps/pcre2/build/libpcre2-posix.a deps/pcre2/build/libpcre2-8.a
 
 BIN = bin
 
@@ -18,7 +21,10 @@ OBJ = $(SRC:.c=.o)
 
 EXE = keac
 
-.PHONY: all clean
+.PHONY: all deps clean
+
+deps:
+	cd deps/pcre2 && mkdir -p build && cd build && cmake .. -DBUILD_SHARED_LIBS=OFF -DPCRE2_BUILD_TESTS=OFF && cmake --build . --config Release && make
 
 all: $(EXE)
 

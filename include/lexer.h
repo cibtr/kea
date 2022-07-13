@@ -88,7 +88,6 @@ typedef struct {
 	uint64_t line, column;
 } Token;
 
-
 Lexer *lexer_create(const char *src, const char *file_name, SymbolTable *table);
 void lexer_free(Lexer *lexer);
 

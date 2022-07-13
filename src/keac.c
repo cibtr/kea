@@ -30,7 +30,7 @@ char *keac_compile(const char *file_name)
 
 void keac_error(const char *file, uint64_t line, uint64_t column, const char *message, ...)
 {
-	fprintf(stderr, "%s:%lu:%lu: error: ", file, line, column);
+	fprintf(stderr, "\033[1;39m%s:%lu:%lu:\033[0m \033[1;31merror:\033[0m ", file, line, column);
 
 	va_list args;
 	va_start(args, message);

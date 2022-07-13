@@ -1,5 +1,6 @@
+#include <pcre2posix.h>
+
 #include <ctype.h>
-#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -66,10 +67,9 @@ Lexer *lexer_create(const char *src, const char *file_name, SymbolTable *table)
 
 void lexer_free(Lexer *this)
 {
-	// Free the regex
-	regfree(&this->valid_int_reg);
-	regfree(&this->invalid_int_reg);
-	regfree(&this->identifier_reg);
+	pcre2_regfree(&this->valid_int_reg);
+	pcre2_regfree(&this->invalid_int_reg);
+	pcre2_regfree(&this->identifier_reg);
 
 	add_token(this, TOKEN_EOF, 0);
 
@@ -81,7 +81,6 @@ void lexer_free(Lexer *this)
 Token *lexer_next_token(Lexer *this)
 {
 	next_word(this);
-	// printf("%s ", this->lexeme);
 	identify_token(this);
 	printf("%s ", lexer_str_token(this->token->type));
 
@@ -313,7 +312,7 @@ void add_token(Lexer *this, TokenType type, uint64_t line)
 
 void regex_compile(regex_t *dest, const char *src, int cflags)
 {
-	if (regcomp(dest, src, cflags) != 0) {
+	if (pcre2_regcomp(dest, src, cflags) != 0) {
 		fprintf(stderr, "internal error: regcomp failed\n");
 		exit(EXIT_FAILURE);
 	}
@@ -321,7 +320,7 @@ void regex_compile(regex_t *dest, const char *src, int cflags)
 
 bool regex_match(const char *src, regex_t *regex)
 {
-	if (regexec(regex, src, 0, NULL, 0) == 0)
+	if (pcre2_regexec(regex, src, 0, NULL, 0) == 0)
 		return true;
 	else
 		return false;
@@ -330,76 +329,76 @@ bool regex_match(const char *src, regex_t *regex)
 const char *lexer_str_token(TokenType token)
 {
 	switch (token) {
-		case TOKEN_LEFT_PAREN:            return "LEFT_PAREN";
-		case TOKEN_RIGHT_PAREN:           return "RIGHT_PAREN";
-		case TOKEN_LEFT_BRACKET:          return "LEFT_BRACKET";
-		case TOKEN_RIGHT_BRACKET:         return "RIGHT_BRACKET";
-		case TOKEN_LEFT_BRACE:            return "LEFT_BRACE";
-		case TOKEN_RIGHT_BRACE:           return "RIGHT_BRACE";
-		case TOKEN_COMMA:                 return "COMMA";
-		case TOKEN_COLON:                 return "COLON";
-		case TOKEN_SEMICOLON:             return "SEMICOLON";
-		case TOKEN_BANG:                  return "BANG";
-		case TOKEN_EQUAL:                 return "EQUAL";
-		case TOKEN_NOT_EQUAL:             return "NOT_EQUAL";
-		case TOKEN_LESS_THAN:             return "LESS_THAN";
-		case TOKEN_GREATER_THAN:          return "GREATER_THAN";
-		case TOKEN_LESS_EQUAL_THAN:       return "LESS_EQUAL_THAN";
-		case TOKEN_GREATER_EQUAL_THAN:    return "GREATER_EQUAL_THAN";
-		case TOKEN_AND_AND:               return "AND_AND";
-		case TOKEN_AND_EQUALS:            return "AND_EQUALS";
-		case TOKEN_OR_OR:                 return "OR_OR";
-		case TOKEN_OR_EQUALS:             return "OR_EQUALS";
-		case TOKEN_ASSIGN:                return "ASSIGN";
-		case TOKEN_PLUS:                  return "PLUS";
-		case TOKEN_MINUS:                 return "MINUS";
-		case TOKEN_INCREMENT:             return "INCREMENT";
-		case TOKEN_DECREMENT:             return "DECREMENT";
-		case TOKEN_ASTERISK:              return "ASTERISK";
-		case TOKEN_DIVIDE:                return "DIVIDE";
-		case TOKEN_MODULO:                return "MODULO";
-		case TOKEN_DIVIDE_EQUALS:         return "DIVIDE_EQUALS";
-		case TOKEN_TIMES_EQUALS:          return "TIMES_EQUALS";
-		case TOKEN_PLUS_EQUALS:           return "PLUS_EQUALS";
-		case TOKEN_MINUS_EQUALS:          return "MINUS_EQUALS";
-		case TOKEN_MODULO_EQUALS:         return "MODULO_EQUALS";
-		case TOKEN_AND:                   return "AND";
-		case TOKEN_OR:                    return "OR";
-		case TOKEN_XOR:                   return "XOR";
-		case TOKEN_NOT:                   return "NOT";
-		case TOKEN_BITSHIFT_LEFT:         return "BITSHIFT_LEFT";
-		case TOKEN_BITSHIFT_RIGHT:        return "BITSHIFT_RIGHT";
-		case TOKEN_BITSHIFT_LEFT_EQUALS:  return "BITSHIFT_LEFT_EQUALS";
-		case TOKEN_BITSHIFT_RIGHT_EQUALS: return "BITSHIFT_RIGHT_EQUALS";
-		case TOKEN_ARROW:                 return "ARROW";
-		case TOKEN_VOID:                  return "VOID";
-		case TOKEN_BOOL:                  return "BOOL";
-		case TOKEN_TRUE:                  return "TRUE";
-		case TOKEN_FALSE:                 return "FALSE";
-		case TOKEN_VAR:                   return "VAR";
 		case TOKEN_I8:                    return "I8";
+		case TOKEN_IF:                    return "IF";
+		case TOKEN_OR:                    return "OR";
+		case TOKEN_AND:                   return "AND";
+		case TOKEN_EOF:                   return "EOF";
+		case TOKEN_FOR:                   return "FOR";
 		case TOKEN_I16:                   return "I16";
 		case TOKEN_I32:                   return "I32";
 		case TOKEN_I64:                   return "I64";
+		case TOKEN_NOT:                   return "NOT";
 		case TOKEN_UI8:                   return "UI8";
+		case TOKEN_VAR:                   return "VAR";
+		case TOKEN_XOR:                   return "XOR";
+		case TOKEN_BANG:                  return "BANG";
+		case TOKEN_BOOL:                  return "BOOL";
+		case TOKEN_CASE:                  return "CASE";
+		case TOKEN_ELSE:                  return "ELSE";
+		case TOKEN_PLUS:                  return "PLUS";
+		case TOKEN_TRUE:                  return "TRUE";
 		case TOKEN_UI16:                  return "UI16";
 		case TOKEN_UI32:                  return "UI32";
 		case TOKEN_UI64:                  return "UI64";
-		case TOKEN_IF:                    return "IF";
-		case TOKEN_ELSE:                  return "ELSE";
-		case TOKEN_SWITCH:                return "SWITCH";
-		case TOKEN_CASE:                  return "CASE";
-		case TOKEN_DEFAULT:               return "DEFAULT";
-		case TOKEN_WHILE:                 return "WHILE";
-		case TOKEN_FOR:                   return "FOR";
-		case TOKEN_CONTINUE:              return "CONTINUE";
+		case TOKEN_VOID:                  return "VOID";
+		case TOKEN_ARROW:                 return "ARROW";
 		case TOKEN_BREAK:                 return "BREAK";
+		case TOKEN_COLON:                 return "COLON";
+		case TOKEN_COMMA:                 return "COMMA";
+		case TOKEN_EQUAL:                 return "EQUAL";
+		case TOKEN_FALSE:                 return "FALSE";
+		case TOKEN_MINUS:                 return "MINUS";
+		case TOKEN_OR_OR:                 return "OR_OR";
+		case TOKEN_WHILE:                 return "WHILE";
+		case TOKEN_ASSIGN:                return "ASSIGN";
+		case TOKEN_DIVIDE:                return "DIVIDE";
+		case TOKEN_MODULO:                return "MODULO";
 		case TOKEN_RETURN:                return "RETURN";
-		case TOKEN_INT_LITERAL:           return "INT_LITERAL";
-		case TOKEN_CHARACTER_LITERAL:     return "CHARACTER_LITERAL";
-		case TOKEN_STRING_LITERAL:        return "STRING_LITERAL";
+		case TOKEN_SWITCH:                return "SWITCH";
+		case TOKEN_AND_AND:               return "AND_AND";
+		case TOKEN_DEFAULT:               return "DEFAULT";
+		case TOKEN_ASTERISK:              return "ASTERISK";
+		case TOKEN_CONTINUE:              return "CONTINUE";
+		case TOKEN_DECREMENT:             return "DECREMENT";
+		case TOKEN_INCREMENT:             return "INCREMENT";
+		case TOKEN_LESS_THAN:             return "LESS_THAN";
+		case TOKEN_NOT_EQUAL:             return "NOT_EQUAL";
+		case TOKEN_OR_EQUALS:             return "OR_EQUALS";
+		case TOKEN_SEMICOLON:             return "SEMICOLON";
+		case TOKEN_AND_EQUALS:            return "AND_EQUALS";
 		case TOKEN_IDENTIFIER:            return "IDENTIFIER";
-		case TOKEN_EOF:                   return "EOF";
+		case TOKEN_LEFT_BRACE:            return "LEFT_BRACE";
+		case TOKEN_LEFT_PAREN:            return "LEFT_PAREN";
+		case TOKEN_INT_LITERAL:           return "INT_LITERAL";
+		case TOKEN_PLUS_EQUALS:           return "PLUS_EQUALS";
+		case TOKEN_RIGHT_BRACE:           return "RIGHT_BRACE";
+		case TOKEN_RIGHT_PAREN:           return "RIGHT_PAREN";
+		case TOKEN_GREATER_THAN:          return "GREATER_THAN";
+		case TOKEN_LEFT_BRACKET:          return "LEFT_BRACKET";
+		case TOKEN_MINUS_EQUALS:          return "MINUS_EQUALS";
+		case TOKEN_TIMES_EQUALS:          return "TIMES_EQUALS";
+		case TOKEN_BITSHIFT_LEFT:         return "BITSHIFT_LEFT";
+		case TOKEN_DIVIDE_EQUALS:         return "DIVIDE_EQUALS";
+		case TOKEN_MODULO_EQUALS:         return "MODULO_EQUALS";
+		case TOKEN_RIGHT_BRACKET:         return "RIGHT_BRACKET";
+		case TOKEN_BITSHIFT_RIGHT:        return "BITSHIFT_RIGHT";
+		case TOKEN_STRING_LITERAL:        return "STRING_LITERAL";
+		case TOKEN_LESS_EQUAL_THAN:       return "LESS_EQUAL_THAN";
+		case TOKEN_CHARACTER_LITERAL:     return "CHARACTER_LITERAL";
+		case TOKEN_GREATER_EQUAL_THAN:    return "GREATER_EQUAL_THAN";
+		case TOKEN_BITSHIFT_LEFT_EQUALS:  return "BITSHIFT_LEFT_EQUALS";
+		case TOKEN_BITSHIFT_RIGHT_EQUALS: return "BITSHIFT_RIGHT_EQUALS";
 		default:
 			return "";
 	}
